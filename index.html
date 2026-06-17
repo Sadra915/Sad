@@ -1,81 +1,230 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>اوج | در حال بروزرسانی</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اوج | هواشناسی زنده خراسان جنوبی</title>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
 
-<style>
-    body{
-        margin:0;
-        height:100vh;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        background: linear-gradient(135deg,#0a1625,#1e3a5f);
-        color:white;
-        font-family:Tahoma,sans-serif;
-        text-align:center;
-        overflow:hidden;
-    }
-
-    .card{
-        background: rgba(255,255,255,0.08);
-        padding:40px;
-        border-radius:25px;
-        backdrop-filter: blur(10px);
-        box-shadow:0 0 30px rgba(245,197,24,.3);
-        max-width:600px;
-        width:90%;
-    }
-
-    h1{
-        color:#f5c518;
-        margin-bottom:10px;
-    }
-
-    .loader{
-        width:70px;
-        height:70px;
-        border:6px solid rgba(255,255,255,.2);
-        border-top:6px solid #f5c518;
-        border-radius:50%;
-        animation: spin 1s linear infinite;
-        margin:25px auto;
-    }
-
-    @keyframes spin{
-        to{
-            transform: rotate(360deg);
+    <style>
+        :root { --gold: #f5c518; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Vazirmatn', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #0a1625, #1e3a5f);
+            color: white;
+            min-height: 100vh;
         }
-    }
-
-    .version{
-        opacity:.8;
-        margin-top:20px;
-        font-size:14px;
-    }
-</style>
+        body.light {
+            background: linear-gradient(135deg, #a0d8ff, #e0f0ff);
+            color: #111;
+        }
+        .sky { position:fixed; inset:0; z-index:-1; overflow:hidden; }
+        .container { max-width:720px; margin:auto; padding:15px; }
+        .card {
+            background:rgba(255,255,255,0.09);
+            backdrop-filter:blur(16px);
+            border-radius:24px;
+            padding:22px;
+            margin-bottom:18px;
+        }
+        body.light .card { background:rgba(255,255,255,0.78); }
+        .temp { font-size:5.3rem; font-weight:700; color:var(--gold); }
+        canvas { width:100% !important; height:260px !important; border-radius:18px; }
+    </style>
 </head>
 <body>
 
-<div class="card">
-    <h1>🌦️ اوج</h1>
+<div class="sky" id="sky"></div>
+<div class="container">
 
-    <div class="loader"></div>
+    <div class="card">
+        <h1>🌦️ اوج - هواشناسی زنده</h1>
+        <div style="display:flex; gap:12px; align-items:center; margin-top:10px;">
+            <div class="switch" onclick="toggleTheme()" style="width:88px;height:44px;background:#222;border-radius:50px;position:relative;cursor:pointer;">
+                <div class="ball" style="width:36px;height:36px;background:white;border-radius:50%;position:absolute;top:4px;left:4px;display:flex;align-items:center;justify-content:center;">☀️</div>
+            </div>
+            <select id="citySelect" onchange="changeCity()"></select>
+        </div>
+    </div>
 
-    <h2>سایت در حال بروزرسانی است</h2>
+    <div class="card">
+        <div id="city" style="font-size:1.65rem;font-weight:600;"></div>
+        <div class="temp" id="temp">--</div>
+        <div id="condition" style="font-size:1.4rem;"></div>
+        <div>رطوبت: <span id="humidity">--</span>% | باد: <span id="wind">--</span> km/h</div>
+    </div>
 
-    <p>
-        نسخه جدید با امکانات بیشتر و بهبودهای تازه در حال آماده‌سازی است.
-        لطفاً کمی بعد دوباره مراجعه کنید.
-    </p>
+    <div class="card">
+        <h3>📈 روند دما (°C)</h3>
+        <canvas id="tempChart"></canvas>
+    </div>
 
-    <div class="version">
-        نسخه فعلی: 1.0 <br>
-        نسخه بعدی: 2.0 🚀
+    <div class="card">
+        <h3>💧 روند رطوبت (%)</h3>
+        <canvas id="humidityChart"></canvas>
+    </div>
+
+    <div class="card">
+        <h3>🌡️ روند فشار هوا (hPa)</h3>
+        <canvas id="pressureChart"></canvas>
+    </div>
+
+    <div class="card">
+        <h3>📅 پیش‌بینی ۵ روزه</h3>
+        <div id="forecast"></div>
     </div>
 </div>
 
+<script>
+const API_KEY = "af5dfeb9ecaefd4d1e0d80a8c703de3c";
+let currentCity = "Birjand";
+
+const cityMap = {
+    Birjand: "Birjand,IR",
+    Qaen: "Qaen,IR",
+    Ferdows: "Ferdows,IR",
+    Nehbandan: "Nehbandan,IR",
+    Tabas: "Tabas,IR",
+    Sarbisheh: "Sarbisheh,IR",
+    Boshruyeh: "Boshruyeh,IR",
+    Khusf: "Khusf,IR",
+    Sarayan: "Sarayan,IR",
+    Zirkuh: "Zirkuh,IR"
+};
+
+function initCities() {
+    const select = document.getElementById("citySelect");
+    select.innerHTML = "";
+
+    const citiesPersian = {
+        Birjand: "بیرجند",
+        Qaen: "قائن",
+        Ferdows: "فردوس",
+        Nehbandan: "نهبندان",
+        Tabas: "طبس",
+        Sarbisheh: "سربیشه",
+        Boshruyeh: "بشرویه",
+        Khusf: "خوسف",
+        Sarayan: "سرایان",
+        Zirkuh: "زیرکوه"
+    };
+
+    Object.keys(cityMap).forEach(key => {
+        const opt = document.createElement("option");
+        opt.value = key;
+        opt.textContent = citiesPersian[key];
+        select.appendChild(opt);
+    });
+}
+
+async function loadWeather() {
+    try {
+        const url = `https://api.openweathermap.org/data/2.5/forecast?q=${cityMap[currentCity]}&appid=${API_KEY}&units=metric&lang=fa`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        const current = data.list[0];
+        const cityName = document.getElementById("citySelect").options[document.getElementById("citySelect").selectedIndex].text;
+
+        document.getElementById("city").innerText = cityName;
+        document.getElementById("temp").innerText = Math.round(current.main.temp) + "°C";
+        document.getElementById("condition").innerText = current.weather[0].description;
+        document.getElementById("humidity").innerText = current.main.humidity;
+        document.getElementById("wind").innerText = current.wind.speed;
+
+        // داده‌های نمودارها
+        const temps = [], humidities = [], pressures = [];
+
+        for (let i = 0; i < 40; i += 8) {
+            const item = data.list[i];
+            temps.push(Math.round(item.main.temp));
+            humidities.push(item.main.humidity);
+            pressures.push(Math.round(item.main.pressure));
+        }
+
+        drawChart("tempChart", temps, "#f5c518", "°C");
+        drawChart("humidityChart", humidities, "#4fc3f7", "%");
+        drawChart("pressureChart", pressures, "#81c784", "hPa");
+
+    } catch (e) {
+        console.error("خطا در دریافت اطلاعات:", e);
+        alert("اطلاعات این شهر در حال حاضر در دسترس نیست.");
+    }
+}
+
+function drawChart(canvasId, data, color, unit) {
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext("2d");
+    const dpr = window.devicePixelRatio || 1;
+    const isLight = document.body.classList.contains("light");
+
+    canvas.width = canvas.offsetWidth * dpr;
+    canvas.height = 260 * dpr;
+    ctx.scale(dpr, dpr);
+
+    const w = canvas.width / dpr;
+    const h = canvas.height / dpr;
+    const max = Math.max(...data) + 6;
+    const min = Math.min(...data) - 6;
+    const range = max - min;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Grid
+    ctx.strokeStyle = isLight ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.12)";
+    for (let i = 1; i < 5; i++) {
+        const y = (h/5)*i;
+        ctx.beginPath();
+        ctx.moveTo(30, y);
+        ctx.lineTo(w-30, y);
+        ctx.stroke();
+    }
+
+    // خط نمودار
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 6.5;
+    ctx.lineJoin = "round";
+    data.forEach((val, i) => {
+        const x = 30 + (i / (data.length - 1)) * (w - 60);
+        const y = h - ((val - min) / range) * (h * 0.72) - 45;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // نقاط و لیبل
+    const days = ["ش", "ی", "د", "س", "چ"];
+    data.forEach((val, i) => {
+        const x = 30 + (i / (data.length - 1)) * (w - 60);
+        const y = h - ((val - min) / range) * (h * 0.72) - 45;
+
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = isLight ? "#111" : "#fff";
+        ctx.font = "bold 15px Vazirmatn";
+        ctx.textAlign = "center";
+        ctx.fillText(val + unit, x, y - 20);
+    });
+}
+
+function toggleTheme() {
+    document.body.classList.toggle("light");
+}
+
+function changeCity() {
+    currentCity = document.getElementById("citySelect").value;
+    loadWeather();
+}
+
+window.onload = () => {
+    initCities();
+    loadWeather();
+};
+</script>
 </body>
 </html>
