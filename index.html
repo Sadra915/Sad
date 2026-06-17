@@ -1,214 +1,81 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>اوج| هواشناسی خراسان جنوبی</title>
-    <style>
-        :root {
-            --gold: #f5c518;
-            --blue: #00b4d8;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>اوج | در حال بروزرسانی</title>
+
+<style>
+    body{
+        margin:0;
+        height:100vh;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        background: linear-gradient(135deg,#0a1625,#1e3a5f);
+        color:white;
+        font-family:Tahoma,sans-serif;
+        text-align:center;
+        overflow:hidden;
+    }
+
+    .card{
+        background: rgba(255,255,255,0.08);
+        padding:40px;
+        border-radius:25px;
+        backdrop-filter: blur(10px);
+        box-shadow:0 0 30px rgba(245,197,24,.3);
+        max-width:600px;
+        width:90%;
+    }
+
+    h1{
+        color:#f5c518;
+        margin-bottom:10px;
+    }
+
+    .loader{
+        width:70px;
+        height:70px;
+        border:6px solid rgba(255,255,255,.2);
+        border-top:6px solid #f5c518;
+        border-radius:50%;
+        animation: spin 1s linear infinite;
+        margin:25px auto;
+    }
+
+    @keyframes spin{
+        to{
+            transform: rotate(360deg);
         }
-        [data-theme="light"] {
-            --gold: #d4a017;
-        }
-        body {
-            margin: 0;
-            font-family: Tahoma, system-ui;
-            background: linear-gradient(135deg, #0a1625 0%, #1e3a5f 100%);
-            color: white;
-            transition: 0.4s;
-        }
-        [data-theme="light"] body {
-            background: linear-gradient(135deg, #a0d8ff, #e0f0ff);
-            color: #111;
-        }
-        header {
-            text-align: center;
-            padding: 20px;
-            background: rgba(10,22,37,0.95);
-            box-shadow: 0 5px 20px rgba(245,197,24,0.4);
-        }
-        .logo {
-            width: 165px;
-            border-radius: 50%;
-            border: 6px solid var(--gold);
-            box-shadow: 0 0 35px var(--gold);
-        }
-        .card {
-            background: rgba(255,255,255,0.09);
-            border-radius: 24px;
-            padding: 22px;
-            margin-bottom: 20px;
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(245,197,24,0.25);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-        }
-        .temp {
-            font-size: 68px;
-            font-weight: bold;
-            color: var(--gold);
-            margin: 10px 0;
-        }
-        .weather-bg {
-            height: 380px;
-            position: relative;
-            border-radius: 20px;
-            overflow: hidden;
-            margin: 15px 0;
-            background: rgba(0,0,0,0.3);
-        }
-        button, .search-btn {
-            padding: 12px 24px;
-            border-radius: 50px;
-            background: var(--gold);
-            color: black;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .theme-toggle {
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            font-size: 28px;
-            background: none;
-            border: none;
-            z-index: 1000;
-            cursor: pointer;
-        }
-    </style>
+    }
+
+    .version{
+        opacity:.8;
+        margin-top:20px;
+        font-size:14px;
+    }
+</style>
 </head>
-<body data-theme="dark">
+<body>
 
-<button class="theme-toggle" onclick="toggleTheme()">☀️</button>
+<div class="card">
+    <h1>🌦️ اوج</h1>
 
-<header>
-    <img src="logo.jpg" alt="اوج " class="logo">
-    <h1>اوج </h1>
-    <p>هواشناسی خراسان جنوبی و بیرجند</p>
-</header>
+    <div class="loader"></div>
 
-<div style="max-width: 1200px; margin: 20px auto; padding: 15px;">
+    <h2>سایت در حال بروزرسانی است</h2>
 
-    <!-- جستجو -->
-    <div class="card">
-        <input type="text" id="search" placeholder="نام شهر را بنویسید..." style="width:100%; padding:16px; border-radius:50px; border:none; background:rgba(255,255,255,0.15); color:white; font-size:16px;">
-        <button onclick="searchCity()" class="search-btn" style="width:100%; margin-top:10px;">🔍 جستجو</button>
+    <p>
+        نسخه جدید با امکانات بیشتر و بهبودهای تازه در حال آماده‌سازی است.
+        لطفاً کمی بعد دوباره مراجعه کنید.
+    </p>
+
+    <div class="version">
+        نسخه فعلی: 1.0 <br>
+        نسخه بعدی: 2.0 🚀
     </div>
-
-    <!-- وضعیت فعلی -->
-    <div class="card">
-        <h2 id="city">بیرجند</h2>
-        <div class="weather-bg" id="weather-bg"></div>
-        <div class="temp" id="temp">۲۹°C</div>
-        <p id="condition" style="font-size:23px;"></p>
-        <p>احساس دما: <span id="feels"></span>°C</p>
-        <p>رطوبت: <span id="humidity"></span>% | باد: <span id="wind"></span> km/h</p>
-    </div>
-
-    <!-- پیش‌بینی روزانه -->
-    <div class="card">
-        <h3>📅 پیش‌بینی ۵ روز آینده</h3>
-        <div id="forecast"></div>
-    </div>
-
-    <!-- هشدارها -->
-    <div class="card">
-        <h3>⚠️ هشدارهای هواشناسی</h3>
-        <div id="alerts"></div>
-    </div>
-
-    <a href="https://eitaa.com/peak_meteorology" target="_blank" style="display:block; text-align:center; background:#229ED9; color:white; padding:18px; border-radius:16px; text-decoration:none; font-size:18px; font-weight:bold; margin:20px 0;">
-        📢 کانال ایتا اوج 
-    </a>
 </div>
 
-<script>
-// سوئیچ تم
-function toggleTheme() {
-    const body = document.body;
-    const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    body.setAttribute('data-theme', newTheme);
-}
-
-// انیمیشن آب و هوا
-function createAnimation(condition) {
-    const bg = document.getElementById('weather-bg');
-    bg.innerHTML = '';
-
-    if (condition.includes("آفتابی")) {
-        bg.innerHTML = `<div style="position:absolute; top:70px; left:50%; transform:translateX(-50%); font-size:130px; animation:shine 6s infinite alternate;">☀️</div>`;
-    }
-    if (condition.includes("ابری") || condition.includes("نیمه")) {
-        bg.innerHTML += `<div style="position:absolute; top:80px; font-size:110px; animation:moveCloud 45s linear infinite;">☁️</div>`;
-    }
-    if (condition.includes("باران") || condition.includes("بارشی")) {
-        const rainDiv = document.createElement('div');
-        rainDiv.style.position = 'absolute';
-        rainDiv.style.inset = '0';
-        rainDiv.style.overflow = 'hidden';
-        for (let i = 0; i < 120; i++) {
-            const drop = document.createElement('div');
-            drop.style.position = 'absolute';
-            drop.style.left = Math.random() * 100 + '%';
-            drop.style.width = '2px';
-            drop.style.height = '50px';
-            drop.style.background = '#81d4ff';
-            drop.style.animation = `fall ${0.4 + Math.random() * 0.6}s linear infinite`;
-            drop.style.opacity = Math.random() * 0.6 + 0.5;
-            rainDiv.appendChild(drop);
-        }
-        bg.appendChild(rainDiv);
-    }
-}
-
-// لود داده از JSON
-async function loadWeather(city = "بیرجند") {
-    try {
-        const res = await fetch("data.json?v=" + Date.now());
-        const data = await res.json();
-
-        document.getElementById("city").textContent = city;
-        document.getElementById("temp").textContent = data.current.temp + "°C";
-        document.getElementById("condition").textContent = data.current.condition;
-        document.getElementById("feels").textContent = data.current.feels;
-        document.getElementById("humidity").textContent = data.current.humidity;
-        document.getElementById("wind").textContent = data.current.wind;
-
-        createAnimation(data.current.condition);
-
-        // پیش‌بینی
-        const forecastDiv = document.getElementById("forecast");
-        forecastDiv.innerHTML = "";
-        data.forecast.forEach(day => {
-            const d = document.createElement("div");
-            d.style.margin = "12px 0";
-            d.innerHTML = `<strong>${day.day}</strong> — ${day.temp}°C <span style="font-size:20px">${day.icon}</span> ${day.condition}`;
-            forecastDiv.appendChild(d);
-        });
-
-        // هشدارها
-        const alertsDiv = document.getElementById("alerts");
-        alertsDiv.innerHTML = "";
-        data.alerts.forEach(alert => {
-            const p = document.createElement("p");
-            p.textContent = "⚠️ " + alert;
-            alertsDiv.appendChild(p);
-        });
-
-    } catch (e) {
-        alert("فایل data.json پیدا نشد یا خطا دارد!");
-    }
-}
-
-function searchCity() {
-    const input = document.getElementById("search").value.trim();
-    if (input) loadWeather(input);
-}
-
-// لود اولیه
-window.onload = () => loadWeather("بیرجند");
-</script>
 </body>
 </html>
