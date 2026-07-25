@@ -1,12 +1,18 @@
 /**
  * service-worker.js
  * Cache-first برای پوسته برنامه (App Shell) تا سایت هرگز هنگام قطع اینترنت
- * کاملاً از کار نیفتد. برای درخواست‌های API (OpenWeather) از استراتژی
+ * کاملاً از کار نیفتد. برای درخواست‌های API (Open-Meteo) از استراتژی
  * Network-first با fallback به کش استفاده می‌شود (داده تازه در اولویت است،
  * اما در صورت قطعی، آخرین پاسخ کش‌شده نمایش داده می‌شود).
+ *
+ * !! نکته مهم !!
+ * هر بار که هر کدام از فایل‌های SHELL_FILES (app.js, api.js, config.js, ...)
+ * را تغییر می‌دهید، CACHE_VERSION زیر را حتماً عوض کنید (مثلاً v2 -> v3).
+ * بدون این کار، مرورگرها متوجه آپدیت نمی‌شوند و نسخه‌ی قدیمی کش‌شده را
+ * برای همیشه نشان می‌دهند.
  */
 
-const CACHE_VERSION = "owj-v1";
+const CACHE_VERSION = "owj-v2";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const DATA_CACHE = `${CACHE_VERSION}-data`;
 
@@ -53,7 +59,7 @@ self.addEventListener("fetch", event => {
   if (req.method !== "GET") return;
 
   // درخواست‌های داده هواشناسی/کیفیت هوا: Network-first، fallback به کش
-  const isDataApi = /openweathermap\.org|rainviewer\.com/.test(url.hostname);
+  const isDataApi = /open-meteo\.com|rainviewer\.com/.test(url.hostname);
   if (isDataApi) {
     event.respondWith(
       fetch(req).then(res => {
