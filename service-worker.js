@@ -14,7 +14,7 @@ const SHELL_FILES = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./css/style.css",
+  "./css/style-2.css",
   "./js/config.js",
   "./js/weathercodes.js",
   "./js/state.js",
