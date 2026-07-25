@@ -77,6 +77,8 @@ const OwjApi = (() => {
       dew_point_2m: json.hourly.dew_point_2m,
       visibility: json.hourly.visibility,
       snow_depth: json.hourly.snow_depth,
+      relative_humidity_2m: json.hourly.relative_humidity_2m,
+      pressure_msl: json.hourly.pressure_msl,
     };
     const hourly = sliceFromNow(rawHourly, 48);
 
@@ -138,7 +140,7 @@ const OwjApi = (() => {
   async function fetchCity(city) {
     const forecastUrl = `${CONFIG.OPEN_METEO_FORECAST}?latitude=${city.lat}&longitude=${city.lon}` +
       `&current=temperature_2m,apparent_temperature,relative_humidity_2m,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover,precipitation,weather_code,is_day` +
-      `&hourly=temperature_2m,weather_code,wind_speed_10m,precipitation_probability,uv_index,dew_point_2m,visibility,snow_depth` +
+      `&hourly=temperature_2m,relative_humidity_2m,pressure_msl,weather_code,wind_speed_10m,precipitation_probability,uv_index,dew_point_2m,visibility,snow_depth` +
       `&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,snowfall_sum,wind_speed_10m_max,wind_gusts_10m_max` +
       `&timezone=${encodeURIComponent(CONFIG.TIMEZONE)}&forecast_days=7`;
 
