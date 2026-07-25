@@ -231,6 +231,15 @@
       navigator.serviceWorker.register("./service-worker.js").catch(err => {
         console.warn("Service worker registration failed:", err);
       });
+
+      // وقتی نسخه‌ی جدید Service Worker فعال بشه، صفحه خودکار رفرش می‌شود
+      // تا کاربر مجبور نباشد دستی کش مرورگر را پاک کند.
+      let swRefreshed = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (swRefreshed) return;
+        swRefreshed = true;
+        window.location.reload();
+      });
     }
   }
 
