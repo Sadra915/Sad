@@ -1,22 +1,13 @@
 /**
  * config.js
- * شهرها، تنظیمات کلی، endpointها، کلید OpenWeather و آستانه‌های هشدار.
+ * شهرها، تنظیمات کلی، endpointها و آستانه‌های هشدار.
  * این فایل باید همیشه قبل از تمام ماژول‌های دیگر بارگذاری شود.
+ *
+ * منبع داده هواشناسی/کیفیت هوا: Open-Meteo (رایگان، بدون نیاز به کلید یا اشتراک)
  */
-
-/* =========================================================
- * !! نکته مهم !!
- * این کلید را با کلید واقعی خودتان از https://openweathermap.org/api
- * جایگزین کنید. بدون کلید معتبر (و بدون فعال بودن اشتراک One Call 3.0
- * روی همان کلید)، درخواست‌ها با خطای 401 مواجه می‌شوند و برنامه برای
- * همیشه روی صفحه بارگذاری باقی می‌ماند.
- * ========================================================= */
 const CONFIG = {
-  OPENWEATHER_KEY: "36ba4e5680e71868366e4aca1ab75cef",
-
-  OPENWEATHER_ONECALL: "https://api.openweathermap.org/data/3.0/onecall",
-  OPENWEATHER_AIR_CURRENT: "https://api.openweathermap.org/data/2.5/air_pollution",
-  OPENWEATHER_AIR_FORECAST: "https://api.openweathermap.org/data/2.5/air_pollution/forecast",
+  OPEN_METEO_FORECAST: "https://api.open-meteo.com/v1/forecast",
+  OPEN_METEO_AIR_QUALITY: "https://air-quality-api.open-meteo.com/v1/air-quality",
 
   RAINVIEWER_INDEX: "https://api.rainviewer.com/public/weather-maps.json",
   OPENTOPOMAP: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
@@ -33,7 +24,6 @@ const CONFIG = {
 
   DEFAULT_CITY: "birjand",
 
-  // آستانه‌های موتور هشدار تخمینی (alerts.js)
   THRESHOLDS: {
     EXTREME_HEAT_C: 40,
     HEAT_C: 35,
@@ -49,7 +39,6 @@ const CONFIG = {
   },
 };
 
-/** ۱۰ شهر استان خراسان جنوبی با مختصات تقریبی */
 const CITIES = [
   { id: "birjand",   name: "بیرجند",   lat: 32.8663, lon: 59.2211, isCapital: true },
   { id: "qayen",     name: "قائن",     lat: 33.7267, lon: 59.1804 },
@@ -63,11 +52,9 @@ const CITIES = [
   { id: "zirkuh",    name: "زیرکوه",   lat: 33.1725, lon: 59.9027 },
 ];
 
-/** مرکز و محدوده تقریبی استان برای نقشه و تصاویر ماهواره‌ای */
 const PROVINCE_CENTER = [32.9, 58.9];
 const PROVINCE_BBOX = { north: 34.6, south: 30.9, east: 61.3, west: 56.6 };
 
-/** نگاشت شاخص AQI رسمی OpenWeather (۱ تا ۵) به رنگ/برچسب/توصیه سلامتی */
 const AQI_INFO = {
   1: { label: "خوب",            color: "#2ecc71", healthTip: "کیفیت هوا مطلوب است؛ محدودیتی برای فعالیت در فضای باز وجود ندارد." },
   2: { label: "قابل قبول",       color: "#a3d900", healthTip: "کیفیت هوا قابل قبول است؛ افراد بسیار حساس احتیاط جزئی داشته باشند." },
