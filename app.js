@@ -93,20 +93,30 @@
     OwjUI.setOnlineBadge(navigator.onLine, true);
     if (!isManualRefresh) OwjUI.showSkeleton();
 
-    const allData = await OwjApi.fetchAll(CITIES);
-    OwjState.state.allCityData = allData;
-    OwjState.state.alerts = OwjAlerts.evaluateAll(allData);
-    OwjState.state.lastUpdate = Date.now();
+    try {
+      const allData = await OwjApi.fetchAll(CITIES);
+      OwjState.state.allCityData = allData;
+      OwjState.state.alerts = OwjAlerts.evaluateAll(allData);
+      OwjState.state.lastUpdate = Date.now();
 
-    const anySuccess = Object.values(allData).some(d => d && !d.error);
-    OwjUI.setOnlineBadge(navigator.onLine, anySuccess);
+      const anySuccess = Object.values(allData).some(d => d && !d.error);
+      OwjUI.setOnlineBadge(navigator.onLine, anySuccess);
 
-    OwjUI.renderAlerts(OwjState.state.alerts);
-    OwjUI.renderProvinceDashboard(allData, OwjState.state.alerts);
-    OwjUI.setLastUpdate(OwjState.state.lastUpdate);
-    renderSelectedCity();
+      OwjUI.renderAlerts(OwjState.state.alerts);
+      OwjUI.renderProvinceDashboard(allData, OwjState.state.alerts);
+      OwjUI.setLastUpdate(OwjState.state.lastUpdate);
+      renderSelectedCity();
 
-    OwjUI.hideLoadingScreen();
+      if (!anySuccess) {
+        console.error("دریافت داده برای هیچ شهری موفق نبود — احتمالاً کلید API یا پلن OpenWeather مشکل دارد.");
+      }
+    } catch (err) {
+      // حتی اگر رندر کردن داده‌ی خراب یا ناقص خطا بدهد، صفحه نباید روی لودینگ گیر کند
+      console.error("خطا در بارگذاری/رندر داده:", err);
+      OwjUI.setOnlineBadge(navigator.onLine, false);
+    } finally {
+      OwjUI.hideLoadingScreen();
+    }
   }
 
   /* ---------------- رویدادهای رابط کاربری ---------------- */
@@ -176,14 +186,24 @@
 
   /* ---------------- راه‌اندازی اولیه ---------------- */
   function init() {
-    document.documentElement.setAttribute("data-theme", OwjState.state.theme);
-    OwjUI.setClockAndDate();
-    OwjEffects.init();
-    OwjMap.init();
-    renderSatStrip();
-    wireEvents();
+    // شبکه‌ی امن: هر اتفاقی بیفتد، حداکثر بعد از ۱۲ ثانیه صفحه‌ی لودینگ باید بسته شود
+    const safetyTimer = setTimeout(() => {
+      console.warn("Safety timeout: forcing loading screen to hide.");
+      OwjUI.hideLoadingScreen();
+    }, 12000);
 
-    loadAll();
+    try {
+      document.documentElement.setAttribute("data-theme", OwjState.state.theme);
+      OwjUI.setClockAndDate();
+      OwjEffects.init();
+      OwjMap.init();
+      renderSatStrip();
+      wireEvents();
+    } catch (err) {
+      console.error("خطا در راه‌اندازی اولیه:", err);
+    }
+
+    loadAll().finally(() => clearTimeout(safetyTimer));
     refreshTimer = setInterval(() => loadAll(true), 15 * 60 * 1000); // بروزرسانی خودکار هر ۱۵ دقیقه
 
     if ("serviceWorker" in navigator) {
