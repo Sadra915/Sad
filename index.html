@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>اوج | هواشناسی خراسان جنوبی</title>
+<meta name="description" content="سامانه جامع هواشناسی زنده استان خراسان جنوبی — دما، رطوبت، کیفیت هوا، گردوغبار، نقشه تعاملی و هشدارهای تخمینی برای بیرجند، قائن، فردوس، طبس و دیگر شهرهای استان.">
+<meta name="theme-color" content="#0a1628">
+<meta property="og:title" content="اوج | هواشناسی خراسان جنوبی">
+<meta property="og:description" content="پیش‌بینی زنده هواشناسی، کیفیت هوا و نقشه تعاملی شهرهای خراسان جنوبی">
+<meta property="og:type" content="website">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./assets/icons/icon-192.png">
+<link rel="preconnect" href="https://api.openweathermap.org">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+
+<!-- فونت وزیرمتن (self-hostable روی GitHub Pages — در اینجا از CDN رسمی بارگذاری می‌شود) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vazirmatn@33.0.3/Vazirmatn-font-face.css">
+
+<!-- Leaflet برای نقشه تعاملی -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body data-sky="clear">
+
+<!-- ===================== صفحه بارگذاری ===================== -->
+<div id="loadingScreen" class="loading-screen">
+  <div class="loading-logo">
+    <svg viewBox="0 0 64 64" class="loading-cloud"><path d="M16 40a13 13 0 0 1 2.5-25.8A17 17 0 0 1 50 21a10.5 10.5 0 0 1-2 19H16z"/></svg>
+    <h1>اوج</h1>
+  </div>
+  <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+  <p>در حال دریافت اطلاعات هواشناسی خراسان جنوبی…</p>
+</div>
+
+<!-- افکت‌های تصویری پس‌زمینه (شب/روز، باران، برف، مه، رعدوبرق) -->
+<canvas id="fxCanvas" class="fx-canvas"></canvas>
+<div id="fxFlash" class="fx-flash"></div>
+<div class="fx-stars-static"></div>
+
+<!-- ===================== هدر ===================== -->
+<header class="topbar">
+  <button id="sidebarToggle" class="icon-btn only-mobile" aria-label="فهرست شهرها">☰</button>
+  <div class="brand">
+    <svg viewBox="0 0 64 64" class="brand-cloud"><path d="M16 40a13 13 0 0 1 2.5-25.8A17 17 0 0 1 50 21a10.5 10.5 0 0 1-2 19H16z"/></svg>
+    <div class="brand-text"><strong>اوج</strong><span>هواشناسی خراسان جنوبی</span></div>
+  </div>
+
+  <nav class="main-nav only-desktop">
+    <a href="#mainScrollArea" class="active">خانه</a>
+    <a href="#aqiSection">کیفیت هوا</a>
+    <a href="#alertsSection">هشدارها</a>
+    <a href="#forecastSection">پیش‌بینی</a>
+    <a href="#satSection">ماهواره</a>
+    <a href="#mapSection">نقشه</a>
+  </nav>
+
+  <div class="topbar-actions">
+    <span id="connStatus" class="conn-badge">در حال بررسی…</span>
+    <button id="refreshBtn" class="icon-btn" title="بروزرسانی" aria-label="بروزرسانی">⟳</button>
+    <button id="themeToggle" class="icon-btn" title="تغییر پوسته" aria-label="حالت روز/شب">🌓</button>
+    <button id="installBtn" class="btn-install" hidden>نصب برنامه</button>
+  </div>
+</header>
+
+<div class="app-shell">
+  <!-- ===================== سایدبار شهرها ===================== -->
+  <aside class="sidebar">
+    <h2 class="sidebar-title">📍 شهرهای خراسان جنوبی</h2>
+    <ul id="cityList" class="city-list"></ul>
+    <button id="compareToggle" class="btn-outline full">📊 مقایسه شهرها</button>
+    <div id="compareTable" class="compare-table"></div>
+  </aside>
+
+  <!-- ===================== محتوای اصلی ===================== -->
+  <main id="mainScrollArea" class="main-content">
+
+    <!-- ردیف بالا: پنل شهر انتخابی + هشدارها -->
+    <section class="top-grid">
+      <div class="glass-card current-card">
+        <div class="current-card-head">
+          <div>
+            <h2 id="cityTitle">—</h2>
+            <span id="staleBadge" class="stale-badge">داده ذخیره‌شده (آفلاین)</span>
+          </div>
+          <div class="head-meta">
+            <span id="jalaliDate"></span>
+            <span id="tehranClock" class="clock"></span>
+            <span id="lastUpdate" class="last-update"></span>
+          </div>
+        </div>
+        <div id="currentPanel" class="current-panel"></div>
+      </div>
+
+      <div id="alertsSection" class="glass-card alerts-card">
+        <div class="card-head">
+          <h3>⚠️ هشدارها <span id="alertsCount" class="badge-count">0</span></h3>
+        </div>
+        <div id="alertsPanel" class="alerts-panel"></div>
+      </div>
+    </section>
+
+    <!-- داشبورد استان -->
+    <section class="glass-card">
+      <div class="card-head"><h3>🗺️ داشبورد استان</h3></div>
+      <div id="provinceDashboard" class="province-dashboard"></div>
+    </section>
+
+    <!-- پیش‌بینی ساعتی -->
+    <section class="glass-card">
+      <div class="card-head"><h3>⏱️ هواشناسی ساعتی (۲۴ ساعت آینده)</h3></div>
+      <div id="hourlyScroll" class="hourly-scroll"></div>
+    </section>
+
+    <!-- پیش‌بینی هفتگی -->
+    <section id="forecastSection" class="glass-card">
+      <div class="card-head"><h3>📅 پیش‌بینی هفت روزه</h3></div>
+      <div id="weeklyCards" class="weekly-cards"></div>
+    </section>
+
+    <!-- کیفیت هوا و گردوغبار -->
+    <section id="aqiSection" class="two-col">
+      <div class="glass-card">
+        <div class="card-head"><h3>🌿 کیفیت هوا (AQI)</h3></div>
+        <div id="aqiPanel" class="aqi-panel"></div>
+      </div>
+      <div class="glass-card">
+        <div class="card-head"><h3>🌪️ تحلیل گردوغبار <span class="tag-estimate">تخمینی</span></h3></div>
+        <div id="dustPanel" class="dust-panel"></div>
+      </div>
+    </section>
+
+    <!-- نمودارهای حرفه‌ای -->
+    <section class="glass-card">
+      <div class="card-head"><h3>📈 نمودارهای هواشناسی</h3></div>
+      <div class="charts-grid">
+        <div class="chart-box"><h4>دمای ۷ روز آینده</h4><div class="chart-wrap"><canvas id="chartTemp"></canvas></div></div>
+        <div class="chart-box"><h4>سرعت باد ۷ روز آینده</h4><div class="chart-wrap"><canvas id="chartWind"></canvas></div></div>
+        <div class="chart-box"><h4>رطوبت ۲۴ ساعت آینده</h4><div class="chart-wrap"><canvas id="chartHumidity"></canvas></div></div>
+        <div class="chart-box"><h4>فشار هوا ۲۴ ساعت آینده</h4><div class="chart-wrap"><canvas id="chartPressure"></canvas></div></div>
+        <div class="chart-box"><h4>شاخص UV ۲۴ ساعت آینده</h4><div class="chart-wrap"><canvas id="chartUv"></canvas></div></div>
+        <div class="chart-box"><h4>دید افقی ۲۴ ساعت آینده</h4><div class="chart-wrap"><canvas id="chartVisibility"></canvas></div></div>
+        <div class="chart-box"><h4>احتمال بارش ۲۴ ساعت آینده</h4><div class="chart-wrap"><canvas id="chartPrecipProb"></canvas></div></div>
+        <div class="chart-box"><h4>کیفیت هوا (AQI) ۲۴ ساعت آینده</h4><div class="chart-wrap"><canvas id="chartAqi"></canvas></div></div>
+      </div>
+    </section>
+
+    <!-- تصاویر ماهواره‌ای -->
+    <section id="satSection" class="glass-card">
+      <div class="card-head"><h3>🛰️ تصاویر ماهواره‌ای <span class="tag-live">NASA GIBS</span></h3></div>
+      <div id="satStrip" class="sat-strip"></div>
+    </section>
+
+    <!-- نقشه تعاملی -->
+    <section id="mapSection" class="glass-card map-card">
+      <div class="card-head"><h3>🗺️ نقشه تعاملی استان</h3></div>
+
+      <div class="map-controls">
+        <div class="map-control-group">
+          <span class="mcg-label">لایه پایه:</span>
+          <button data-base-layer="standard" class="chip active">نقشه</button>
+          <button data-base-layer="terrain" class="chip">توپوگرافی</button>
+          <button data-base-layer="satellite" class="chip">ماهواره‌ای</button>
+        </div>
+        <div class="map-control-group">
+          <span class="mcg-label">لایه داده:</span>
+          <button data-map-layer="temp" class="chip active">دما</button>
+          <button data-map-layer="wind" class="chip">باد</button>
+          <button data-map-layer="humidity" class="chip">رطوبت</button>
+          <button data-map-layer="pressure" class="chip">فشار</button>
+          <button data-map-layer="cloud" class="chip">ابر</button>
+          <button data-map-layer="aqi" class="chip">AQI</button>
+          <button data-map-layer="dust" class="chip">گردوغبار</button>
+        </div>
+        <div class="map-control-group">
+          <button id="radarToggle" class="chip chip-outline">رادار بارش</button>
+          <button id="satToggle" class="chip chip-outline">تصویر ماهواره زنده</button>
+        </div>
+      </div>
+
+      <div id="mapView" class="map-view"></div>
+      <p class="map-note">مقادیر دما/باد/رطوبت/فشار/ابر/AQI بر اساس داده واقعی نقطه‌ای ۱۰ شهر استان نمایش داده می‌شوند. رادار بارش (RainViewer) و تصویر ماهواره زنده (NASA GIBS) لایه‌های کاشی واقعی و زنده هستند.</p>
+    </section>
+
+    <footer class="site-footer">
+      <p>اوج © ۱۴۰۵ — تمام داده‌های هواشناسی و کیفیت هوا بر پایه OpenWeather است. زمان‌ها بر اساس ساعت رسمی ایران (IRST) محاسبه می‌شوند.</p>
+      <p class="footer-disclaimer">هشدارها و شاخص گردوغبار این سامانه «تخمینی» و غیررسمی هستند و جایگزین اطلاعیه‌های رسمی سازمان هواشناسی نمی‌شوند.</p>
+    </footer>
+  </main>
+</div>
+
+<!-- ===================== کتابخانه‌های خارجی (CDN، رایگان) ===================== -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+
+<!-- ===================== ماژول‌های برنامه ===================== -->
+<script src="./js/config.js"></script>
+<script src="./js/weathercodes.js"></script>
+<script src="./js/state.js"></script>
+<script src="./js/api.js"></script>
+<script src="./js/dust.js"></script>
+<script src="./js/advice.js"></script>
+<script src="./js/alerts.js"></script>
+<script src="./js/ui.js"></script>
+<script src="./js/map.js"></script>
+<script src="./js/charts.js"></script>
+<script src="./js/effects.js"></script>
+<script src="./js/app.js"></script>
+</body>
+</html>
