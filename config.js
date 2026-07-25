@@ -12,7 +12,7 @@
  * همیشه روی صفحه بارگذاری باقی می‌ماند.
  * ========================================================= */
 const CONFIG = {
-  OPENWEATHER_KEY: "YOUR_OPENWEATHER_API_KEY",
+  OPENWEATHER_KEY: "36ba4568007186836604acalab75cef",
 
   OPENWEATHER_ONECALL: "https://api.openweathermap.org/data/3.0/onecall",
   OPENWEATHER_AIR_CURRENT: "https://api.openweathermap.org/data/2.5/air_pollution",
