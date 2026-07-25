@@ -108,15 +108,36 @@
       renderSelectedCity();
 
       if (!anySuccess) {
-        console.error("دریافت داده برای هیچ شهری موفق نبود — احتمالاً کلید API یا پلن OpenWeather مشکل دارد.");
+        const sampleError = Object.values(allData).find(d => d && d.error);
+        showDebugBanner(
+          "دریافت داده هواشناسی ناموفق بود. پیام فنی: " +
+          (sampleError ? sampleError.message : "نامشخص")
+        );
       }
     } catch (err) {
       // حتی اگر رندر کردن داده‌ی خراب یا ناقص خطا بدهد، صفحه نباید روی لودینگ گیر کند
       console.error("خطا در بارگذاری/رندر داده:", err);
       OwjUI.setOnlineBadge(navigator.onLine, false);
+      showDebugBanner("خطای داخلی هنگام نمایش داده: " + (err && err.message ? err.message : String(err)));
     } finally {
       OwjUI.hideLoadingScreen();
     }
+  }
+
+  /* ---------------- بنر خطا روی خود صفحه (بدون نیاز به کنسول مرورگر) ---------------- */
+  function showDebugBanner(text) {
+    let el = document.getElementById("owjDebugBanner");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "owjDebugBanner";
+      el.style.cssText = `
+        position:fixed; top:0; left:0; right:0; z-index:99999;
+        background:#ff3c3c; color:#fff; padding:10px 14px; font-size:13px;
+        text-align:center; line-height:1.7; direction:rtl; font-family:sans-serif;
+      `;
+      document.body.prepend(el);
+    }
+    el.textContent = "⚠️ " + text;
   }
 
   /* ---------------- رویدادهای رابط کاربری ---------------- */
