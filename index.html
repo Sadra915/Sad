@@ -12,14 +12,13 @@
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="./assets/icons/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./assets/icons/icon-192.png">
-<link rel="preconnect" href="https://api.openweathermap.org">
-<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 
-<!-- فونت وزیرمتن (self-hostable روی GitHub Pages — در اینجا از CDN رسمی بارگذاری می‌شود) -->
+<!-- فونت وزیرمتن -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vazirmatn@33.0.3/Vazirmatn-font-face.css">
 
-<!-- Leaflet برای نقشه تعاملی -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<!-- Leaflet برای نقشه تعاملی (jsDelivr به‌جای cdnjs، چون دامنه‌ی cdnjs برای بعضی کاربران فیلتر است) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
 
 <link rel="stylesheet" href="./style-2.css">
 </head>
@@ -185,15 +184,15 @@
     </section>
 
     <footer class="site-footer">
-      <p>اوج © ۱۴۰۵ — تمام داده‌های هواشناسی و کیفیت هوا بر پایه OpenWeather است. زمان‌ها بر اساس ساعت رسمی ایران (IRST) محاسبه می‌شوند.</p>
+      <p>اوج © ۱۴۰۵ — تمام داده‌های هواشناسی و کیفیت هوا بر پایه Open-Meteo است. زمان‌ها بر اساس ساعت رسمی ایران (IRST) محاسبه می‌شوند.</p>
       <p class="footer-disclaimer">هشدارها و شاخص گردوغبار این سامانه «تخمینی» و غیررسمی هستند و جایگزین اطلاعیه‌های رسمی سازمان هواشناسی نمی‌شوند.</p>
     </footer>
   </main>
 </div>
 
-<!-- ===================== کتابخانه‌های خارجی (CDN، رایگان) ===================== -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<!-- ===================== کتابخانه‌های خارجی (jsDelivr به‌جای cdnjs) ===================== -->
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
 <!-- ===================== ماژول‌های برنامه ===================== -->
 <script src="./config.js"></script>
