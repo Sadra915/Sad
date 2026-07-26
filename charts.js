@@ -2,10 +2,18 @@
  * charts.js
  * نمودارهای حرفه‌ای با Chart.js (از CDN بارگذاری می‌شود)
  * همه نمودارها Responsive هستند و در تم تیره/روشن رنگ‌بندی خود را وفق می‌دهند.
+ *
+ * نکته: اگر کتابخانه‌ی Chart.js به هر دلیلی (مثلاً فیلتر شدن CDN) بارگذاری
+ * نشود، این ماژول به‌جای پرتاب خطا و خراب کردن کل صفحه، فقط بخش نمودارها را
+ * نادیده می‌گیرد و بی‌صدا خارج می‌شود.
  */
 
 const OwjCharts = (() => {
   const instances = {};
+
+  function chartLibAvailable() {
+    return typeof Chart !== "undefined";
+  }
 
   function themeColors() {
     const dark = document.documentElement.getAttribute("data-theme") !== "light";
@@ -46,9 +54,23 @@ const OwjCharts = (() => {
     return g;
   }
 
+  function showChartUnavailableNotice(canvas) {
+    if (!canvas || canvas.dataset.notified) return;
+    canvas.dataset.notified = "1";
+    const note = document.createElement("p");
+    note.className = "hint";
+    note.style.textAlign = "center";
+    note.textContent = "⚠️ کتابخانه‌ی نمودار بارگذاری نشد (احتمالاً فیلتر شبکه). داده‌های عددی بالاتر همچنان در دسترس‌اند.";
+    canvas.insertAdjacentElement("afterend", note);
+  }
+
   function upsert(id, config) {
     const canvas = document.getElementById(id);
     if (!canvas) return;
+    if (!chartLibAvailable()) {
+      showChartUnavailableNotice(canvas);
+      return;
+    }
     if (instances[id]) instances[id].destroy();
     instances[id] = new Chart(canvas.getContext("2d"), config);
   }
@@ -57,7 +79,7 @@ const OwjCharts = (() => {
   function renderTempChart(data) {
     const d = data.forecast.daily;
     const labels = d.time.map(t => new Date(t).toLocaleDateString("fa-IR", { weekday: "short" }));
-    const ctx = document.getElementById("chartTemp")?.getContext("2d");
+    const ctx = chartLibAvailable() ? document.getElementById("chartTemp")?.getContext("2d") : null;
     upsert("chartTemp", {
       type: "line",
       data: {
@@ -103,7 +125,7 @@ const OwjCharts = (() => {
     const slice = h.time.slice(nowIdx, nowIdx + 24);
     const labels = slice.map(t => new Date(t).toLocaleTimeString("fa-IR", { hour: "2-digit" }));
     const values = h[field]?.slice(nowIdx, nowIdx + 24) || [];
-    const ctx = document.getElementById(canvasId)?.getContext("2d");
+    const ctx = chartLibAvailable() ? document.getElementById(canvasId)?.getContext("2d") : null;
     upsert(canvasId, {
       type: "line",
       data: {
@@ -119,7 +141,7 @@ const OwjCharts = (() => {
     });
   }
 
-  /** نمودار کیفیت هوا AQI ساعتی (پیش‌بینی OpenWeather Air Pollution، مقیاس ۱ تا ۵) */
+  /** نمودار کیفیت هوا AQI ساعتی (مقیاس ۱ تا ۵ هم‌ارز‌سازی‌شده) */
   function renderAqiChart(data) {
     const h = data.airQuality?.hourly;
     if (!h?.time?.length) return;
@@ -142,14 +164,19 @@ const OwjCharts = (() => {
   /** رسم همه نمودارهای شهر انتخاب‌شده */
   function renderAllForCity(data) {
     if (!data || data.error) return;
-    renderTempChart(data);
-    renderWindChart(data);
-    renderHourlyMetric("chartHumidity", data, "relative_humidity_2m", "#3498db", "رطوبت", "%");
-    renderHourlyMetric("chartPressure", data, "pressure_msl", "#9b59b6", "فشار هوا", "hPa");
-    renderHourlyMetric("chartUv", data, "uv_index", "#f5a623", "شاخص UV");
-    renderHourlyMetric("chartVisibility", data, "visibility", "#7f8c8d", "دید افقی", "m");
-    renderHourlyMetric("chartPrecipProb", data, "precipitation_probability", "#2980b9", "احتمال بارش", "%");
-    renderAqiChart(data);
+    try {
+      renderTempChart(data);
+      renderWindChart(data);
+      renderHourlyMetric("chartHumidity", data, "relative_humidity_2m", "#3498db", "رطوبت", "%");
+      renderHourlyMetric("chartPressure", data, "pressure_msl", "#9b59b6", "فشار هوا", "hPa");
+      renderHourlyMetric("chartUv", data, "uv_index", "#f5a623", "شاخص UV");
+      renderHourlyMetric("chartVisibility", data, "visibility", "#7f8c8d", "دید افقی", "m");
+      renderHourlyMetric("chartPrecipProb", data, "precipitation_probability", "#2980b9", "احتمال بارش", "%");
+      renderAqiChart(data);
+    } catch (err) {
+      // خطای نمودارها هرگز نباید کل صفحه یا بقیه داده‌ها را خراب کند
+      console.warn("خطا در رسم نمودارها:", err);
+    }
   }
 
   function destroyAll() {
