@@ -228,7 +228,13 @@
     refreshTimer = setInterval(() => loadAll(true), 15 * 60 * 1000); // بروزرسانی خودکار هر ۱۵ دقیقه
 
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js").catch(err => {
+      navigator.serviceWorker.register("./service-worker.js").then(reg => {
+        // هر بار کاربر برمی‌گردد به تب (بعد از قفل گوشی، سوییچ اپ و غیره)،
+        // فوراً چک کن آیا نسخه‌ی جدیدی منتشر شده یا نه — به‌جای صبر تا چک خودکار ~۲۴ ساعته مرورگر
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "visible") reg.update();
+        });
+      }).catch(err => {
         console.warn("Service worker registration failed:", err);
       });
 
