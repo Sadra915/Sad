@@ -12,7 +12,7 @@
  * برای همیشه نشان می‌دهند.
  */
 
-const CACHE_VERSION = "owj-v3";
+const CACHE_VERSION = "owj-v5";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const DATA_CACHE = `${CACHE_VERSION}-data`;
 
@@ -38,7 +38,15 @@ const SHELL_FILES = [
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(SHELL_CACHE)
-      .then(cache => cache.addAll(SHELL_FILES))
+      .then(cache =>
+        Promise.all(
+          SHELL_FILES.map(url =>
+            fetch(url, { cache: "reload" }) // مرورگر را مجبور می‌کند حتماً از شبکه بگیرد، نه از کش HTTP خودش
+              .then(res => cache.put(url, res))
+              .catch(err => console.warn("SW precache failed for", url, err))
+          )
+        )
+      )
       .catch(err => console.warn("SW install cache error:", err))
   );
   self.skipWaiting();
