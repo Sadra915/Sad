@@ -12,7 +12,7 @@
  * برای همیشه نشان می‌دهند.
  */
 
-const CACHE_VERSION = "owj-v12";
+const CACHE_VERSION = "owj-v13";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const DATA_CACHE = `${CACHE_VERSION}-data`;
 
